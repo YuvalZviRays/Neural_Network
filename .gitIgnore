@@ -1,0 +1,13 @@
+
+.vscode/
+node_modules/
+
+# Ignore the virtual environment
+myenv/
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore environment configuration
+.env
