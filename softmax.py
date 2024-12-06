@@ -12,7 +12,7 @@ class Softmax(ObjectiveFunction):
     ## @param weightMatrix: The weight matrix
     ## @return: The softmax
     def function(self, weightMatrix):
-        z = np.dot(self.sampleMatrix, weightMatrix)
+        z = np.dot(self.sampleMatrix.T, weightMatrix)
         exp_z = np.exp(z)
 
         denominator = np.sum(exp_z, axis=1, keepdims=True)
@@ -41,6 +41,6 @@ class Softmax(ObjectiveFunction):
         softmax = self.function(weightMatrix)
         number_of_samples = self.sampleMatrix.shape[0]
 
-        gradient = np.dot(self.sampleMatrix.T, softmax - self.labelMatrix) / number_of_samples
+        gradient = np.dot(self.sampleMatrix, softmax - self.labelMatrix) / number_of_samples
 
         return gradient
