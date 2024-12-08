@@ -1,11 +1,10 @@
 import numpy as np # type: ignore
 import logging
-from ObjectiveFunction import ObjectiveFunction
+from output_functions.ObjectiveFunction import ObjectiveFunction
 
 class Softmax(ObjectiveFunction):
-	
-    def __init__(self, sampleMatrix, labelMatrix):
-        self.sampleMatrix = sampleMatrix
+
+    def __init__(self, labelMatrix):
         self.labelMatrix = labelMatrix
 
     ## Function to calculate the softmax
@@ -34,13 +33,24 @@ class Softmax(ObjectiveFunction):
 
         return loss
 
-    ## Function to calculate the gradient of the softmax
+    ## Function to calculate the gradient of the loss of softmax function on the weight
     ## @param weightMatrix: The weight matrix
-    ## @return: The gradient of the loss softmax
+    ## @return: The gradient of the loss softmax on the weight
     def gradient_of_loss_on_weight(self, weightMatrix):
         softmax = self.function(weightMatrix)
         number_of_samples = self.sampleMatrix.shape[0]
 
         gradient = np.dot(self.sampleMatrix, softmax - self.labelMatrix) / number_of_samples
+
+        return gradient
+    
+    ## Function to calculate the gradient test for the softmax loss function on the samples
+    ## @param weightMatrix: The weight matrix
+    ## @return: The gradient of the loss softmax on the samples
+    def gradient_of_loss_on_samples(self, weightMatrix):
+        softmax = self.function(weightMatrix)
+        number_of_samples = self.sampleMatrix.shape[0]
+
+        gradient = np.dot(weightMatrix, (softmax - self.labelMatrix).T) / number_of_samples
 
         return gradient

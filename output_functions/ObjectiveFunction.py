@@ -72,6 +72,33 @@ class ObjectiveFunction(ABC):
         zero_order_approximation = np.abs(zero_order_approximation)
 
         return zero_order_approximation, first_degree_approximation
+    
+    def gradient_test_for_loss_function_on_samples(self, weightMatrix, epsilon):
+        """
+        Perform a gradient test to verify the implementation of the gradient.
+        :param weightMatrix: The weight matrix.
+        :param epsilon: Perturbation value for the gradient test.
+        """
+        # Step 1: Generate normalized random vector d
+        d = self.get_normalized_random_vector(self.sampleMatrix)
+        sample_matrix_original = self.sampleMatrix
+        self.sampleMatrix = self.sampleMatrix + epsilon * d
+
+        # Step 2: Compute numerical approximation using finite differences
+        f_w_plus_eps_d = self.loss_function(weightMatrix)
+        self.sampleMatrix = sample_matrix_original
+        f_w = self.loss_function(weightMatrix)
+        zero_order_approximation = f_w_plus_eps_d - f_w
+
+        # Step 3: Compute analytical approximation using the gradient
+        calculated_gradient = self.gradient_of_loss_on_samples(weightMatrix)
+        first_order_approximation = epsilon * np.sum(calculated_gradient * d)
+
+        # Step 4: Compute the differences
+        first_degree_approximation = np.abs(zero_order_approximation - first_order_approximation)
+        zero_order_approximation = np.abs(zero_order_approximation)
+
+        return zero_order_approximation, first_degree_approximation
 
     def get_normalized_random_vector(self, weightMatrix):
         """

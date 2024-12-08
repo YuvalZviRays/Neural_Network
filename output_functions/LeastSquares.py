@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from ObjectiveFunction import ObjectiveFunction
+from output_functions.ObjectiveFunction import ObjectiveFunction
 
 class LeastSquaresObjectiveFunction(ObjectiveFunction):
     def __init__(self, sampleMatrix, labelMatrix):
