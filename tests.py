@@ -9,74 +9,12 @@ from SGD import SGD
 from output_functions.LeastSquares import LeastSquaresObjectiveFunction
 from Hidden_Layer_Functions.tanh import Tanh
 from Hidden_Layer_Functions.Hidden_Layer_Function import Hidden_Layer_Function
-from Feed_Forword_NN import Neural_Network
+from neural_networks.standard_neural_network import Standard_Neural_Network
 from scipy.io import loadmat # type: ignore
 
 class Tester:
 
-    # fix the weight matrix issue across the code that causes annoyance 
-
-
-    # def test_sgd_on_neural_network(self):
-    #         # Step 1: Load data from the .mat file
-    #         mat_data = loadmat('data_sets/PeaksData.mat')
-            
-    #         # Extract matrices
-    #         training_features = mat_data['Yt']  # Transpose: features × samples
-    #         training_labels = mat_data['Ct'].T  # Training labels (class)
-    #         test_features = mat_data['Yv']  # Transpose: features × samples
-    #         test_labels = mat_data['Cv'].T  # Validation labels (class)
-
-    #         # Step 3: Initialize the objective function
-    #         objective_function = Neural_Network(training_features, training_labels, 1, [3], Tanh())
-
-    #         # Step 4: Initialize SGD optimizer with hyperparameters
-    #         learning_rate = 0.00005
-    #         max_iterations = 80
-    #         batch_size = 100
-    #         sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size)
-
-    #         # Step 5: Initialize weights randomly
-    #         num_features = training_features.shape[0]  # Features are rows now
-    #         initial_weights = np.random.randn(num_features, training_labels.shape[1])
-    #         logging.info(f"Initial weights: {initial_weights}")
-
-    #         # Step 6: Optimize the weights
-    #         optimized_weights, losses, success_percentage_train, success_percentage_test = sgd_optimizer.optimize(
-    #             initial_weights, test_features, test_labels
-    #         )
-
-    #         # Plot both success percentages on the same graph
-    #         plt.figure(figsize=(10, 6))
-    #         plt.plot(range(len(success_percentage_train)), success_percentage_train, label="Training Accuracy", color="blue", linewidth=2)
-    #         plt.plot(range(len(success_percentage_test)), success_percentage_test, label="Validation Accuracy", color="red", linewidth=2)
-
-    #         # Add gridlines
-    #         plt.grid(alpha=0.5, linestyle="--")
-
-    #         # Add title and labels
-    #         plt.title("Training and Validation Accuracy per Epoch", fontsize=16, fontweight="bold")
-    #         plt.xlabel("Epochs", fontsize=12)
-    #         plt.ylabel("Accuracy (%)", fontsize=12)
-
-    #         # Add legend
-    #         plt.legend(loc="lower right", fontsize=12)
-
-    #         # Customize x and y ticks
-    #         plt.xticks(fontsize=10)
-    #         plt.yticks(fontsize=10)
-
-    #         # Adjust margins for better spacing
-    #         plt.tight_layout()
-
-    #         # Show the plot
-    #         plt.show()
-
-    #         # Log final results
-    #         logging.info(f"Final Train Success %: {success_percentage_train[-1]}")
-    #         logging.info(f"Final Test Success %: {success_percentage_test[-1]}")
-    #         logging.info(f"Optimized Weights: \n{optimized_weights}")
-
+    #=============================================Task 2.2.3 test===================================================
     def gradient_test_FF_neural_network(self):
         """
         Perform a gradient test for the feedforward neural network.
@@ -131,6 +69,56 @@ class Tester:
         plt.grid(alpha=0.5, linestyle="--")
         plt.show()
     
+    #=============================================Task 2.2.1 test===================================================
+        
+    def jacobian_test_for_standard_neural_network(self):
+                # a single hidden layer with 3 neurons and 3 features
+        sample_matrix = np.array([[1],  # Feature 1
+                                [2],  # Feature 2
+                                [3]])  # Feature 3
+        
+        weight_matrix_1 = np.array([[0.1, 0.2, 0.3], 
+                                [0.4, 0.5, 0.6], 
+                                [0.7, 0.8, 0.9]])
+        
+        weight_matrix_2 = np.array([[0.1, 0.2, 0.3], 
+                                [0.4, 0.5, 0.6], 
+                                [0.7, 0.8, 0.9]])
+        
+        bias_vector = np.array([[0.1],
+                                [0.2],
+                                [0.3]])
+        tanh_model = Tanh()
+        
+        hidden_layer_1 = Hidden_Layer_Function(weight_matrix_1, tanh_model, bias_vector)
+        hidden_layer_2 = Hidden_Layer_Function(weight_matrix_2, tanh_model, bias_vector)
+        hidden_layers = [hidden_layer_1, hidden_layer_2]
+
+        neural_network = Standard_Neural_Network(hidden_layers, sample_matrix)
+
+
+        epsilon_values = np.logspace(1, 8, 8)  # Epsilon values
+        first_degree_approximations_weight = []
+        second_degree_approximations_weight = []
+
+        # Assume softmax_model.gradient_test_for_loss_function calculates and returns approximations
+        for epsilon in epsilon_values:
+
+            first, second = neural_network.jacobian_test_for_weight(1/epsilon)
+            first_degree_approximations_weight.append(first)
+            second_degree_approximations_weight.append(second)
+        
+        # Plotting the approximations on a semilogarithmic scale
+        plt.figure()
+        plt.loglog(epsilon_values, first_degree_approximations_weight, label='Zero Order Approximation', marker='o')
+        plt.loglog(epsilon_values, second_degree_approximations_weight, label='First Order Approximation', marker='s')
+        plt.xlabel('Epsilon (log scale)')
+        plt.ylabel('Approximation/Error (log scale)')
+        plt.title('Jacobian Test For standard Neural Network on Weights')
+        plt.legend()
+        plt.show()
+
+    
     def jacobian_test_hidden_layer(self):
         # a single hidden layer with 3 neurons and 3 features
         sample_matrix = np.array([[1],  # Feature 1
@@ -140,13 +128,17 @@ class Tester:
         weight_matrix = np.array([[0.1, 0.2, 0.3], 
                                 [0.4, 0.5, 0.6], 
                                 [0.7, 0.8, 0.9]])
+        
+        bias_vector = np.array([[0.1],
+                                [0.2],
+                                [0.3]])
         tanh_model = Tanh()
         
-        hidden_layer = Hidden_Layer_Function(weight_matrix, tanh_model)
+        hidden_layer = Hidden_Layer_Function(weight_matrix, tanh_model, bias_vector)
 
         hidden_layer.set_input_for_test(sample_matrix)
 
-        epsilon_values = np.logspace(-1, -8, 8)  # Epsilon values
+        epsilon_values = np.logspace(1, 8, 8)  # Epsilon values
         first_degree_approximations_weight = []
         second_degree_approximations_weight = []
 
@@ -156,7 +148,7 @@ class Tester:
         # Assume softmax_model.gradient_test_for_loss_function calculates and returns approximations
         for epsilon in epsilon_values:
 
-            first, second = hidden_layer.jacobian_test_for_weight(epsilon)
+            first, second = hidden_layer.jacobian_test_for_weight(1/epsilon)
             first_degree_approximations_weight.append(first)
             second_degree_approximations_weight.append(second)
 
@@ -260,7 +252,7 @@ class Tester:
         y = y.reshape(-1, 1)
 
         # Step 2: Initialize the objective function
-        objective_function = LeastSquaresObjectiveFunction(X, y, initial_weights)
+        objective_function = LeastSquaresObjectiveFunction(X, y.T, initial_weights)
 
         # Step 3: Initialize SGD optimizer
         learning_rate = 0.6

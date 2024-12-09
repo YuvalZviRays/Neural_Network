@@ -19,7 +19,7 @@ def main():
     # Run the tests
     tester = Tester()
     # tester.softmax_loss_function_gradient_test()
-    tester.test_sgd_on_softmax()
+    tester.jacobian_test_for_standard_neural_network()
 
 # Entry point
 if __name__ == "__main__":
