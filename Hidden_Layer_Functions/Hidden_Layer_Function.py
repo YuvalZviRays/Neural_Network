@@ -4,23 +4,29 @@ from Hidden_Layer_Functions.activation_function import Activation_function
 
 
 class Hidden_Layer_Function():
-    def __init__(self, weight_matrix, activation_function):
+    def __init__(self, weight_matrix, activation_function, bias_vector):
         self.weight_matrix = weight_matrix
         self.activation_function = activation_function
         self.sample_matrix = None 
+        self.bias_vector = bias_vector
     
     def set_input(self, input):
-        # self.sample_matrix = np.vstack((input, np.ones((1, input.shape[1])))).T #return later after testing tanh
+        self.sample_matrix = input
+    
+    def set_input_for_test(self, input):
         self.sample_matrix = input
     
     def function(self):
-        return self.activation_function.function(self.weight_matrix, self.sample_matrix)
+        return self.activation_function.function(self.weight_matrix, self.sample_matrix, self.bias_vector)
     
     def jacobian_of_weight(self):
-        return self.activation_function.jacobian_of_weight(self.weight_matrix, self.sample_matrix)
+        return self.activation_function.jacobian_of_weight(self.weight_matrix, self.sample_matrix, self.bias_vector)
     
     def jacobian_of_samples(self):
-        return self.activation_function.jacobian_of_samples(self.weight_matrix, self.sample_matrix)
+        return self.activation_function.jacobian_of_samples(self.weight_matrix, self.sample_matrix, self.bias_vector)
+    
+    def derivative(self):
+        return self.activation_function.derivative(self.weight_matrix, self.sample_matrix, self.bias_vector)
     
     def jacobian_test_for_weight(self, epsilon):
         d = self.get_normalized_random_vector(self.sample_matrix)

@@ -18,7 +18,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def main():
     # Run the tests
     tester = Tester()
-    tester.jacobian_test_hidden_layer()
+    # tester.softmax_loss_function_gradient_test()
+    tester.test_sgd_on_softmax()
 
 # Entry point
 if __name__ == "__main__":

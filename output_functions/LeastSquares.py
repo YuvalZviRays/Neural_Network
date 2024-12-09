@@ -3,21 +3,27 @@ import logging
 from output_functions.ObjectiveFunction import ObjectiveFunction
 
 class LeastSquaresObjectiveFunction(ObjectiveFunction):
-    def __init__(self, sampleMatrix, labelMatrix):
-        self.sampleMatrix = sampleMatrix
-        self.labelMatrix = labelMatrix
     
-    def function(self, weightMatrix):
-        return self.loss_function(weightMatrix)
+    def function(self):
+        return self.loss_function()
 
-    def loss_function(self, weightMatrix):
-        predictions = np.dot(self.sampleMatrix, weightMatrix)
-        residuals = predictions - self.labelMatrix
+    def loss_function(self):
+        predictions = np.dot(self.sample_matrix, self.weight_matrix)
+        residuals = predictions - self.label_matrix
         loss = np.mean(residuals ** 2)  # Mean squared error
         return loss
 
-    def gradient_of_loss_on_weight(self, weightMatrix):
-        predictions = np.dot(self.sampleMatrix, weightMatrix)
-        residuals = predictions - self.labelMatrix
-        gradient = 2 * np.dot(self.sampleMatrix.T, residuals) / self.sampleMatrix.shape[0]
+    def gradient_of_loss_on_weight(self):
+        predictions = np.dot(self.sample_matrix, self.weight_matrix)
+        residuals = predictions - self.label_matrix
+        gradient = 2 * np.dot(self.sample_matrix.T, residuals) / self.sample_matrix.shape[0]
         return gradient
+    
+    def get_weights(self):
+        return self.weight_matrix
+    
+    def set_weights(self, weight_matrix):
+        self.weight_matrix = weight_matrix
+
+    def gradient_of_loss_on_samples(self):
+        pass
