@@ -10,6 +10,7 @@ from output_functions.LeastSquares import LeastSquaresObjectiveFunction
 from Hidden_Layer_Functions.tanh import Tanh
 from Hidden_Layer_Functions.Hidden_Layer_Function import Hidden_Layer_Function
 from neural_networks.standard_neural_network import Standard_Neural_Network
+from full_neural_network import Neural_Network
 from scipy.io import loadmat # type: ignore
 
 class Tester:
@@ -21,7 +22,6 @@ class Tester:
         """
         # Step 1: Initialize a small test feedforward neural network
         input_dim = 2  # Number of input features
-        hidden_layer_size = 2  # Number of hidden layers
         hidden_layer_dim = [3, 2]  # Dimensions of each hidden layer
         output_dim = 2  # Number of output classes
 
@@ -34,13 +34,10 @@ class Tester:
 
         # Initialize the neural network
         activation_function = Tanh()  # Use the tanh activation function
-        nn_model = Neural_Network(
-            sample_matrix_dim=input_dim,
-            label_matrix=test_labels,
-            hidden_layer_size=hidden_layer_size,
-            hidden_layer_dim=hidden_layer_dim,
-            activation_function=activation_function,
-        )
+        nn_model = Neural_Network(input_dim, hidden_layer_dim, activation_function, output_dim)
+
+        nn_model.set_input(test_input)
+        nn_model.set_labels(test_labels)
 
         # Step 2: Generate epsilon values for gradient testing
         epsilon_values = np.logspace(1, 8, 8)  # Epsilon values from 10^-8 to 10^-1
@@ -49,7 +46,7 @@ class Tester:
 
         # Step 3: Iterate through epsilon values and compute approximations
         for epsilon in epsilon_values:
-            zero_order, first_order = nn_model.gradient_test_on_weight(test_input, 1/epsilon)
+            zero_order, first_order = nn_model.gradient_test_on_weight(1/epsilon)
             # Aggregate errors (e.g., take the mean across all samples and outputs)
             zero_order_approximations.append(zero_order)
             first_order_approximations.append(first_order)
@@ -94,8 +91,8 @@ class Tester:
         hidden_layer_2 = Hidden_Layer_Function(weight_matrix_2, tanh_model, bias_vector)
         hidden_layers = [hidden_layer_1, hidden_layer_2]
 
-        neural_network = Standard_Neural_Network(hidden_layers, sample_matrix)
-
+        neural_network = Standard_Neural_Network(hidden_layers)
+        neural_network.sample_matrix = sample_matrix
 
         epsilon_values = np.logspace(1, 8, 8)  # Epsilon values
         first_degree_approximations_weight = []
@@ -190,13 +187,13 @@ class Tester:
             initial_weights = np.random.randn(num_features, training_labels.shape[1])
 
             # Step 3: Initialize the objective function
-            objective_function = Softmax.Softmax(training_features, training_labels, initial_weights)
+            objective_function = Softmax.Softmax(initial_weights)
 
             # Step 4: Initialize SGD optimizer with hyperparameters
             learning_rate = 0.00005
             max_iterations = 80
             batch_size = 100
-            sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size)
+            sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, training_features, training_labels)
 
 
             # Step 6: Optimize the weights
@@ -252,7 +249,9 @@ class Tester:
         y = y.reshape(-1, 1)
 
         # Step 2: Initialize the objective function
-        objective_function = LeastSquaresObjectiveFunction(X, y.T, initial_weights)
+        objective_function = LeastSquaresObjectiveFunction(initial_weights)
+        objective_function.set_sample_matrix(X)
+        objective_function.set_label_matrix(y)
 
         # Step 3: Initialize SGD optimizer
         learning_rate = 0.6
@@ -288,7 +287,9 @@ class Tester:
                                 [0.4, 0.5, 0.6], 
                                 [0.7, 0.8, 0.9]])
 
-        softmax_model = Softmax.Softmax(input_matrix, label_matrix, weight_matrix)
+        softmax_model = Softmax.Softmax(weight_matrix)
+        softmax_model.sample_matrix = input_matrix
+        softmax_model.label_matrix = label_matrix
 
         epsilon_values = np.logspace(1, 8, 8)  # Epsilon values
         first_degree_approximations_weight = []

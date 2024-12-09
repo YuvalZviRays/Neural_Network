@@ -8,9 +8,8 @@ class Neural_Network(ABC):
     This serves as an interface for gradient-based optimization tasks.
     """
 
-    def __init__(self, hidden_layers, sample_matrix):
+    def __init__(self, hidden_layers):
         self.hidden_layers = hidden_layers
-        self.sample_matrix = sample_matrix
 
     @abstractmethod
     def function(self):
@@ -19,9 +18,9 @@ class Neural_Network(ABC):
         propogated through the network to result in an output
         """
         pass
-
+    
     @abstractmethod
-    def jack_on_weights(self):
+    def jackMV(self, p):
         """
         compute the Jacobian-vector product
         Does this by propogating the input through the network and then multiplying the result by the input vector
@@ -60,21 +59,28 @@ class Neural_Network(ABC):
         """
         Test the Jacobian-vector product for the weight matrix.
         """
-        # Initialize the perturbation vector
-        perturbation = np.random.randn(self.get_weights().size)
-        perturbation = perturbation / np.linalg.norm(perturbation)
+        # Initialize the perturbation vector size is the same as the number of weights
+        v = np.random.randn(self.get_weights().size)
+        v = v / np.linalg.norm(v)
         original_weights = self.get_weights()   
 
         # Compute the Jacobian-vector product
-        self.set_weights(original_weights + epsilon * perturbation)
+        self.set_weights(original_weights + epsilon * v)
         f_w_plus_epsilon = self.function()
         self.set_weights(original_weights)
         f_w = self.function()
 
         zero_order_approximations = f_w_plus_epsilon - f_w
 
-        jack_product = self.jack_on_weights().dot(perturbation * epsilon)
-
+        jack_product = self.jackMV(v * epsilon)
         first_order_approximations = zero_order_approximations - jack_product
+
+        # A random variable to test the transpose test, size is the same as the number of output neurons
+        f_w = self.function()
+        u = np.random.randn(*f_w.shape)
+        u = u / np.linalg.norm(u)
+
+        transpose_test = np.abs(np.dot(u.T, jack_product) - np.dot(v.T, self.jackTMV(u)))
+        logging.info(f"Transpose test: {transpose_test}")
 
         return np.abs(np.sum(zero_order_approximations)), np.abs(np.sum(first_order_approximations))

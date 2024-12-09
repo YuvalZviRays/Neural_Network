@@ -2,10 +2,10 @@ import numpy as np # type: ignore
 import logging
 
 class SGD:
-    def __init__(self, objective_function, learning_rate, max_epochs, batch_size):
+    def __init__(self, objective_function, learning_rate, max_epochs, batch_size, sample_matrix, label_matrix):
         self.objective_function = objective_function
-        self.sample_matrix = objective_function.sample_matrix
-        self.label_matrix = objective_function.label_matrix
+        self.sample_matrix = sample_matrix
+        self.label_matrix = label_matrix
         self.momentum = 0.9
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -27,8 +27,8 @@ class SGD:
             batch_labels = self.label_matrix[indices, :]
 
             # Temporarily set batch data in the objective function
-            self.objective_function.sample_matrix = batch_sample
-            self.objective_function.label_matrix = batch_labels
+            self.objective_function.set_sample_matrix(batch_sample)
+            self.objective_function.set_label_matrix(batch_labels)
 
             # Compute gradient and velocity
             gradient = self.objective_function.gradient_of_loss_on_weight()
@@ -74,8 +74,8 @@ class SGD:
         indices = np.random.choice(self.num_samples, min(self.batch_size, self.num_samples), replace=False)
         batch_inputs = self.sample_matrix[:, indices]
         batch_labels = self.label_matrix[indices ,:]
-        self.objective_function.sample_matrix = batch_inputs
-        self.objective_function.label_matrix = batch_labels
+        self.objective_function.set_sample_matrix(batch_inputs)
+        self.objective_function.set_label_matrix(batch_labels)
 
         #compute the sucess precentage for train data
         function_output = self.objective_function.function()
@@ -86,8 +86,8 @@ class SGD:
         indices = np.random.choice(test_size, min(self.batch_size, test_size), replace=False)
         batch_inputs = test_sample_matrix[:, indices]
         batch_labels = test_label_matrix[indices ,:]
-        self.objective_function.sample_matrix =batch_inputs
-        self.objective_function.label_matrix = batch_labels
+        self.objective_function.set_sample_matrix(batch_inputs)
+        self.objective_function.set_label_matrix(batch_labels)
 
         #compute the sucess precentage
         function_output = self.objective_function.function()

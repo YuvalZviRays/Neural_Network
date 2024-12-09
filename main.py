@@ -18,8 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def main():
     # Run the tests
     tester = Tester()
-    # tester.softmax_loss_function_gradient_test()
-    tester.jacobian_test_for_standard_neural_network()
+    tester.gradient_test_FF_neural_network()
 
 # Entry point
 if __name__ == "__main__":

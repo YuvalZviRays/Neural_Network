@@ -10,7 +10,6 @@ class Standard_Neural_Network(Neural_Network):
     def function(self):
         # Forward pass
         output = self.sample_matrix 
-        logging.info(f"output : {output}")
         # Forward pass through hidden layers and set the output as the input for the next layer
         for i in range(len(self.hidden_layers)):
             hidden_layer_function = self.hidden_layers[i]
@@ -19,29 +18,56 @@ class Standard_Neural_Network(Neural_Network):
         
         return output
     
-    def jack_on_weights(self):
-        
-        output_size = self.hidden_layers[-1].weight_matrix.shape[0]  # Number of neurons in the last layer
-        delta = np.ones((output_size, 1))
 
-        jack = []
-        for i in range(len(self.hidden_layers)-1, -1, -1):
-                
-                hidden_layer = self.hidden_layers[i]
-                grad_w = hidden_layer.jacobian_of_weight() * delta
-                jack.append(grad_w.ravel())
-                grad_b = np.sum(hidden_layer.jacobian_of_samples() * delta, axis=1, keepdims=True)
-                jack.append(grad_b.ravel())
-    
-                delta = hidden_layer.jacobian_of_samples() * delta
-        
-        return np.concatenate(jack)
+    def jackMV(self, p):
+        # p is a 1D array representing perturbations to all weights and biases.
+        # We must split p into p_W and p_b for each layer.
+
+        # Step 1: Slice p into (p_W, p_b) for each layer
+        p_weights = []
+        p_biases = []
+        idx = 0
+        for layer in self.hidden_layers:
+            w_shape = layer.weight_matrix.shape  # (num_neurons, num_inputs)
+            w_size = w_shape[0] * w_shape[1]
+
+            p_w = p[idx : idx + w_size].reshape(w_shape)
+            idx += w_size
+
+            # bias shape: (num_neurons, 1)
+            b_shape = (w_shape[0], 1)
+            b_size = b_shape[0]
+            p_b = p[idx : idx + b_size].reshape(b_shape)
+            idx += b_size
+
+            p_weights.append(p_w)
+            p_biases.append(p_b)
+
+        delta_a = np.zeros_like(self.hidden_layers[0].sample_matrix)
+
+        # Step 2: Compute the effect of p on the output
+        for i, layer in enumerate(self.hidden_layers):
+            W = layer.weight_matrix
+            a_prev = layer.sample_matrix       # input to this layer
+            d = layer.derivative()             # derivative w.r.t. preactivation
+            pW = p_weights[i]
+            pB = p_biases[i]
+
+            delta_z = W.dot(delta_a) + pW.dot(a_prev) + pB
+
+            delta_a = d * delta_z
+
+        # After the last layer, delta_a is how the final output changes due to p
+        return delta_a
 
     def jackTMV(self, delta):
         jack = []
         for i in range(len(self.hidden_layers)-1, -1, -1):
 
             hidden_layer = self.hidden_layers[i]
+
+            logging.log(logging.INFO, f"delta shape: {hidden_layer.derivative() * delta}")
+
             grad_w = np.dot(hidden_layer.derivative() * delta, hidden_layer.sample_matrix.T)
             jack.append(grad_w.ravel())
 

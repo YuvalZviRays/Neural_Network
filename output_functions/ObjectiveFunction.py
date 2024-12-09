@@ -8,10 +8,14 @@ class ObjectiveFunction(ABC):
     This serves as an interface for gradient-based optimization tasks.
     """
 
-    def __init__(self, sample_matrix, label_matrix, weight_matrix):
-        self.sample_matrix = sample_matrix
-        self.label_matrix = label_matrix   
+    def __init__(self, weight_matrix):
         self.weight_matrix = weight_matrix
+    
+    def set_sample_matrix(self, sample_matrix):
+        self.sample_matrix = sample_matrix
+    
+    def set_label_matrix(self, label_matrix):
+        self.label_matrix = label_matrix
 
     @abstractmethod
     def function(self):
