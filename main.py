@@ -19,7 +19,7 @@ def main():
     # Run the tests
     tester = Tester()
     hidden_layers = [16, 16]
-    tester.test_sgd_on_neural_network(hidden_layers, "tanh")
+    tester.test_neural_network(hidden_layers, "ReLU")
 
 # Entry point
 if __name__ == "__main__":

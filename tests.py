@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt # type: ignore
 from SGD import SGD
 from output_functions.LeastSquares import LeastSquaresObjectiveFunction
 from Hidden_Layer_Functions.tanh import Tanh
+from Hidden_Layer_Functions.ReLU import ReLU
 from Hidden_Layer_Functions.Hidden_Layer_Function import Hidden_Layer_Function
 from neural_networks.standard_neural_network import Standard_Neural_Network
 from full_neural_network import Neural_Network
@@ -15,8 +16,79 @@ from scipy.io import loadmat # type: ignore
 
 class Tester:
 
-     #=============================================Task 2.1.4 test===================================================
-    def test_sgd_on_neural_network(self, hidden_layer_dim, activation_function ):
+         #=============================================Task 2.2.5 test===================================================
+    def test_neural_network_on_200_samples(self, hidden_layer_dim, activation_function):
+
+        mat_data = loadmat('data_sets/GMMData.mat')
+        
+        # Extract full training data
+        full_training_features = mat_data['Yt']  
+        full_training_labels = mat_data['Ct'].T  
+
+        # Randomly sample 200 data points from the training set
+        sample_indices = np.random.choice(full_training_features.shape[1], 200, replace=False)
+        training_features = full_training_features[:, sample_indices] 
+        training_labels = full_training_labels[sample_indices, :]  
+
+        test_features = mat_data['Yv']  
+        test_labels = mat_data['Cv'].T 
+
+        # Determine input and output dimensions
+        input_dim = training_features.shape[0]  # Number of input features
+        output_dim = training_labels.shape[1]  # Number of output classes
+
+        if activation_function == 'tanh':
+            activation_function = Tanh()
+        elif activation_function == 'ReLU':
+            activation_function = ReLU() 
+
+        # Step 3: Initialize the objective function
+        objective_function = Neural_Network(input_dim, hidden_layer_dim, activation_function, output_dim)
+
+        # Step 4: Initialize SGD optimizer with hyperparameters
+        learning_rate = 0.1
+        max_iterations = 200
+        batch_size = 5
+        sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, training_features, training_labels)
+
+        # Step 6: Optimize the weights
+        optimized_weights, losses, success_percentage_train, success_percentage_test = sgd_optimizer.optimize_with_precentages(
+            test_features, test_labels
+        )
+
+        # Plot both success percentages on the same graph
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(len(success_percentage_train)), success_percentage_train, label="Training Accuracy", color="blue", linewidth=2)
+        plt.plot(range(len(success_percentage_test)), success_percentage_test, label="Validation Accuracy", color="red", linewidth=2)
+
+        # Add gridlines
+        plt.grid(alpha=0.5, linestyle="--")
+
+        # Add title and labels
+        plt.title("Training and Validation Accuracy per Epoch on 200 samples", fontsize=16, fontweight="bold")
+        plt.xlabel("Epochs", fontsize=12)
+        plt.ylabel("Accuracy (%)", fontsize=12)
+
+        # Add legend
+        plt.legend(loc="lower right", fontsize=12)
+
+        # Customize x and y ticks
+        plt.xticks(fontsize=10)
+        plt.yticks(fontsize=10)
+
+        # Adjust margins for better spacing
+        plt.tight_layout()
+
+        # Show the plot
+        plt.show()
+
+        # Log final results
+        logging.info(f"Final Train Success %: {success_percentage_train[-1]}")
+        logging.info(f"Final Test Success %: {success_percentage_test[-1]}")
+        logging.info(f"Optimized Weights: \n{optimized_weights}")
+
+     #=============================================Task 2.2.4 test===================================================
+    def test_neural_network(self, hidden_layer_dim, activation_function ):
             # Step 1: Load data from the .mat file
             mat_data = loadmat('data_sets/GMMData.mat')
             
@@ -30,7 +102,7 @@ class Tester:
             if activation_function == 'tanh':
                 activation_function = Tanh()
             if activation_function == 'ReLU':
-                activation_function = ReLU() #! add ReLU activation class
+                activation_function = ReLU()
             
             input_dim = training_features.shape[0]  # Number of input features
             output_dim = training_labels.shape[1]  # Number of output classes
@@ -39,8 +111,8 @@ class Tester:
             objective_function = Neural_Network(input_dim, hidden_layer_dim, activation_function, output_dim)
 
             # Step 4: Initialize SGD optimizer with hyperparameters
-            learning_rate = 0.001
-            max_iterations = 100
+            learning_rate = 0.003
+            max_iterations = 30
             batch_size = 100
             sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, training_features, training_labels)
 
