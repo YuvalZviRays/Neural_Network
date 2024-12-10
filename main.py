@@ -18,7 +18,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def main():
     # Run the tests
     tester = Tester()
-    tester.gradient_test_FF_neural_network()
+    hidden_layers = [16, 16]
+    tester.test_sgd_on_neural_network(hidden_layers, "tanh")
 
 # Entry point
 if __name__ == "__main__":

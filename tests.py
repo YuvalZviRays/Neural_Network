@@ -15,6 +15,71 @@ from scipy.io import loadmat # type: ignore
 
 class Tester:
 
+     #=============================================Task 2.1.4 test===================================================
+    def test_sgd_on_neural_network(self, hidden_layer_dim, activation_function ):
+            # Step 1: Load data from the .mat file
+            mat_data = loadmat('data_sets/GMMData.mat')
+            
+            # Extract matrices
+            training_features = mat_data['Yt']  # Transpose: features × samples
+            training_labels = mat_data['Ct'].T  # Training labels (class)
+            test_features = mat_data['Yv']  # Transpose: features × samples
+            test_labels = mat_data['Cv'].T  # Validation labels (class)
+            num_features = training_features.shape[0]  # Features are rows now
+
+            if activation_function == 'tanh':
+                activation_function = Tanh()
+            if activation_function == 'ReLU':
+                activation_function = ReLU() #! add ReLU activation class
+            
+            input_dim = training_features.shape[0]  # Number of input features
+            output_dim = training_labels.shape[1]  # Number of output classes
+
+            # Step 3: Initialize the objective function
+            objective_function = Neural_Network(input_dim, hidden_layer_dim, activation_function, output_dim)
+
+            # Step 4: Initialize SGD optimizer with hyperparameters
+            learning_rate = 0.001
+            max_iterations = 100
+            batch_size = 100
+            sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, training_features, training_labels)
+
+            # Step 6: Optimize the weights
+            optimized_weights, losses, success_percentage_train, success_percentage_test = sgd_optimizer.optimize_with_precentages(
+                test_features, test_labels
+            )
+
+            # Plot both success percentages on the same graph
+            plt.figure(figsize=(10, 6))
+            plt.plot(range(len(success_percentage_train)), success_percentage_train, label="Training Accuracy", color="blue", linewidth=2)
+            plt.plot(range(len(success_percentage_test)), success_percentage_test, label="Validation Accuracy", color="red", linewidth=2)
+
+            # Add gridlines
+            plt.grid(alpha=0.5, linestyle="--")
+
+            # Add title and labels
+            plt.title("Training and Validation Accuracy per Epoch", fontsize=16, fontweight="bold")
+            plt.xlabel("Epochs", fontsize=12)
+            plt.ylabel("Accuracy (%)", fontsize=12)
+
+            # Add legend
+            plt.legend(loc="lower right", fontsize=12)
+
+            # Customize x and y ticks
+            plt.xticks(fontsize=10)
+            plt.yticks(fontsize=10)
+
+            # Adjust margins for better spacing
+            plt.tight_layout()
+
+            # Show the plot
+            plt.show()
+
+            # Log final results
+            logging.info(f"Final Train Success %: {success_percentage_train[-1]}")
+            logging.info(f"Final Test Success %: {success_percentage_test[-1]}")
+            logging.info(f"Optimized Weights: \n{optimized_weights}")
+
     #=============================================Task 2.2.3 test===================================================
     def gradient_test_FF_neural_network(self):
         """
@@ -59,7 +124,7 @@ class Tester:
         # Add labels, title, and legend
         plt.xlabel("Epsilon (log scale)", fontsize=12)
         plt.ylabel("Error (log scale)", fontsize=12)
-        plt.title("Gradient Test for Feedforward Neural Network", fontsize=16, fontweight="bold")
+        plt.title("Gradient Test for full Feedforward Neural Network", fontsize=16, fontweight="bold")
         plt.legend(fontsize=12)
 
         # Add gridlines and show plot

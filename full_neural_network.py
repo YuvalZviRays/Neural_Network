@@ -26,10 +26,10 @@ class Neural_Network(ObjectiveFunction):
         output_layer_weight_matrix = np.random.randn(curr_dim, output_dim) * np.sqrt(1 / curr_dim)  # Xavier initialization
         self.output_layer_function = Softmax.Softmax(output_layer_weight_matrix)
     
-    def set_input(self, sample_matrix):
+    def set_sample_matrix(self, sample_matrix):
         self.neural_network.sample_matrix = sample_matrix
     
-    def set_labels(self, label_matrix):
+    def set_label_matrix(self, label_matrix):
         self.output_layer_function.label_matrix = label_matrix
 
     def function(self):
@@ -52,12 +52,9 @@ class Neural_Network(ObjectiveFunction):
 
     def gradient_of_loss_on_weight(self):
         # Backward pass
-
-        grad = []
-
-        grad.append(self.output_layer_function.gradient_of_loss_on_weight().flatten())
-        grad.append(self.neural_network.jackTMV(self.output_layer_function.gradient_of_loss_on_samples()).flatten())
-        return np.flip(np.concatenate(grad))
+            grad_nn = self.neural_network.jackTMV(self.output_layer_function.gradient_of_loss_on_samples()).flatten()
+            grad_out = self.output_layer_function.gradient_of_loss_on_weight().flatten()
+            return np.concatenate([grad_nn, grad_out])
     
     def gradient_of_loss_on_samples(self, test_input, epsilon):
         pass
@@ -65,51 +62,43 @@ class Neural_Network(ObjectiveFunction):
     def get_weights(self):
         params = []
         params.append(self.output_layer_function.get_weights().flatten())
-        params.append(np.flip(self.neural_network.get_weights().flatten()))
+        params.append(self.neural_network.get_weights().flatten())
 
-        return np.flip(np.concatenate(params))
+        return np.concatenate(params)
 
     def set_weights(self, param_vector):
-        # Set weights for hidden layers
         nn_weights_size = self.neural_network.get_weights().size
-        neural_network_params = param_vector[:nn_weights_size]
-        self.neural_network.set_weights(neural_network_params)
-
-        # Set weights for the output layer
-        output_layer_params = param_vector[nn_weights_size:]
+        nn_params = param_vector[:nn_weights_size]
+        out_params = param_vector[nn_weights_size:]
+        
+        self.neural_network.set_weights(nn_params)
         correct_shape = self.output_layer_function.weight_matrix.shape
-        output_layer_matrix = output_layer_params.reshape(correct_shape)
-        self.output_layer_function.set_weights(output_layer_matrix)
+        self.output_layer_function.set_weights(out_params.reshape(correct_shape))
     
     def gradient_test_on_weight(self, epsilon):
 
         weight_matrix = self.get_weights()
-        logging.info(f"Weight matrix: {weight_matrix}")
-        self.set_weights(weight_matrix)
-        logging.info(f"Weight matrix: {self.get_weights()}")
-        self.set_weights(self.get_weights())
-        logging.info(f"Weight matrix: {self.get_weights()}")
 
-        # # Step 1: Generate normalized random vector d
-        # d = self.get_normalized_random_vector()
+        # Step 1: Generate normalized random vector d
+        d = self.get_normalized_random_vector()
 
-        # # Step 2: Compute numerical approximation using finite differences
-        # original_weight_matrix = self.get_weights()
-        # self.set_weights(original_weight_matrix + epsilon * d)
-        # f_w_plus_eps_d = self.loss_function()
-        # self.set_weights(original_weight_matrix)
-        # f_w = self.loss_function()
-        # zero_order_approximation = f_w_plus_eps_d - f_w
+        # Step 2: Compute numerical approximation using finite differences
+        original_weight_matrix = self.get_weights()
+        self.set_weights(original_weight_matrix + epsilon * d)
+        f_w_plus_eps_d = self.loss_function()
+        self.set_weights(original_weight_matrix)
+        f_w = self.loss_function()
+        zero_order_approximation = f_w_plus_eps_d - f_w
 
-        # # Step 3: Compute analytical approximation using the gradient
-        # calculated_gradient = self.gradient_of_loss_on_weight()
-        # first_order_approximation = np.dot(calculated_gradient, d * epsilon)
+        # Step 3: Compute analytical approximation using the gradient
+        calculated_gradient = self.gradient_of_loss_on_weight()
+        first_order_approximation = np.dot(calculated_gradient, d * epsilon)
 
-        # # Step 4: Compute the differences
-        # first_degree_approximation = np.abs(zero_order_approximation - first_order_approximation)
-        # zero_order_approximation = np.abs(zero_order_approximation)
+        # Step 4: Compute the differences
+        first_degree_approximation = np.abs(zero_order_approximation - first_order_approximation)
+        zero_order_approximation = np.abs(zero_order_approximation)
 
-        # return zero_order_approximation, first_degree_approximation
+        return zero_order_approximation, first_degree_approximation
     
     def get_normalized_random_vector(self):
         params = self.get_weights()

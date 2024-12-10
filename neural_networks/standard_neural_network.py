@@ -63,19 +63,14 @@ class Standard_Neural_Network(Neural_Network):
     def jackTMV(self, delta):
         jack = []
         for i in range(len(self.hidden_layers)-1, -1, -1):
-
             hidden_layer = self.hidden_layers[i]
-
-            logging.log(logging.INFO, f"delta shape: {hidden_layer.derivative() * delta}")
-
             grad_w = np.dot(hidden_layer.derivative() * delta, hidden_layer.sample_matrix.T)
-            jack.append(grad_w.ravel())
-
             grad_b = np.sum(hidden_layer.derivative() * delta, axis=1, keepdims=True)
             jack.append(grad_b.ravel())
-
+            jack.append(grad_w.ravel())
             delta = np.dot(hidden_layer.weight_matrix.T, hidden_layer.derivative() * delta)
-        
+
+        jack.reverse()  
         return np.concatenate(jack)
     
     def get_weights(self):

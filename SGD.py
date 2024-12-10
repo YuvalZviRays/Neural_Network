@@ -30,6 +30,8 @@ class SGD:
             self.objective_function.set_sample_matrix(batch_sample)
             self.objective_function.set_label_matrix(batch_labels)
 
+            self.objective_function.function()
+
             # Compute gradient and velocity
             gradient = self.objective_function.gradient_of_loss_on_weight()
             self.velocity = self.momentum * self.velocity + (1 - self.momentum) * gradient
