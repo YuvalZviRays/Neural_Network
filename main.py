@@ -18,8 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def main():
     # Run the tests
     tester = Tester()
-    hidden_layers = [16, 16]
-    tester.test_neural_network(hidden_layers, "ReLU")
+    tester.jacobian_test_residuel_block()
 
 # Entry point
 if __name__ == "__main__":

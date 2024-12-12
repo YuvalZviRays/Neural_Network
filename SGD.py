@@ -49,17 +49,17 @@ class SGD:
 
     def optimize_with_precentages(self, test_sample_matrix, test_label_matrix):
         all_losses = []
-        sucess_precentage_train = []
-        sucess_precentage_test = []
+        success_precentage_train = []
+        success_precentage_test = []
 
         for epoch in range(self.max_epochs):
             self.weights, epoch_losses = self.single_epoch_optimize(epoch)
-            sucess_precentage_train_epoch, sucess_precentage_test_epoch = self.calculate_success_precentages(test_sample_matrix, test_label_matrix)
-            sucess_precentage_train.append(sucess_precentage_train_epoch)
-            sucess_precentage_test.append(sucess_precentage_test_epoch)
+            success_precentage_train_epoch, success_precentage_test_epoch = self.calculate_success_precentages(test_sample_matrix, test_label_matrix)
+            success_precentage_train.append(success_precentage_train_epoch)
+            success_precentage_test.append(success_precentage_test_epoch)
             all_losses += epoch_losses
 
-        return self.weights, all_losses, sucess_precentage_train, sucess_precentage_test
+        return self.weights, all_losses, success_precentage_train, success_precentage_test
     
     def optimize(self):
         all_losses = []

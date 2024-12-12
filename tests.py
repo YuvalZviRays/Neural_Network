@@ -7,9 +7,16 @@ import output_functions.Softmax as Softmax
 import matplotlib.pyplot as plt # type: ignore
 from SGD import SGD
 from output_functions.LeastSquares import LeastSquaresObjectiveFunction
-from Hidden_Layer_Functions.tanh import Tanh
-from Hidden_Layer_Functions.ReLU import ReLU
-from Hidden_Layer_Functions.Hidden_Layer_Function import Hidden_Layer_Function
+
+from activation_functions.classical_activation_functions.classical_tanh import Classical_Tanh
+from activation_functions.classical_activation_functions.classical_ReLU import Classical_ReLU
+from Hidden_Layer_Functions.classical_hidden_layer import Classical_Hidden_Layer
+
+from activation_functions.residual_activation_functions.residual_tanh import Residual_Tanh
+from Hidden_Layer_Functions.residual_block import Residual_Block
+
+
+
 from neural_networks.standard_neural_network import Standard_Neural_Network
 from full_neural_network import Neural_Network
 from scipy.io import loadmat # type: ignore
@@ -38,9 +45,9 @@ class Tester:
         output_dim = training_labels.shape[1]  # Number of output classes
 
         if activation_function == 'tanh':
-            activation_function = Tanh()
+            activation_function = Classical_Tanh()
         elif activation_function == 'ReLU':
-            activation_function = ReLU() 
+            activation_function = Classical_ReLU() 
 
         # Step 3: Initialize the objective function
         objective_function = Neural_Network(input_dim, hidden_layer_dim, activation_function, output_dim)
@@ -88,7 +95,7 @@ class Tester:
         logging.info(f"Optimized Weights: \n{optimized_weights}")
 
      #=============================================Task 2.2.4 test===================================================
-    def test_neural_network(self, hidden_layer_dim, activation_function ):
+    def test_neural_network(self, hidden_layer_dim, activation_function):
             # Step 1: Load data from the .mat file
             mat_data = loadmat('data_sets/GMMData.mat')
             
@@ -100,9 +107,9 @@ class Tester:
             num_features = training_features.shape[0]  # Features are rows now
 
             if activation_function == 'tanh':
-                activation_function = Tanh()
+                activation_function = Classical_Tanh()
             if activation_function == 'ReLU':
-                activation_function = ReLU()
+                activation_function = Classical_ReLU()
             
             input_dim = training_features.shape[0]  # Number of input features
             output_dim = training_labels.shape[1]  # Number of output classes
@@ -112,7 +119,7 @@ class Tester:
 
             # Step 4: Initialize SGD optimizer with hyperparameters
             learning_rate = 0.003
-            max_iterations = 30
+            max_iterations =  100
             batch_size = 100
             sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, training_features, training_labels)
 
@@ -170,11 +177,11 @@ class Tester:
         logging.info(f"Test labels: \n{test_labels}")
 
         # Initialize the neural network
-        activation_function = Tanh()  # Use the tanh activation function
+        activation_function = Classical_Tanh()  # Use the tanh activation function
         nn_model = Neural_Network(input_dim, hidden_layer_dim, activation_function, output_dim)
 
-        nn_model.set_input(test_input)
-        nn_model.set_labels(test_labels)
+        nn_model.set_sample_matrix(test_input)
+        nn_model.set_label_matrix(test_labels)
 
         # Step 2: Generate epsilon values for gradient testing
         epsilon_values = np.logspace(1, 8, 8)  # Epsilon values from 10^-8 to 10^-1
@@ -203,6 +210,141 @@ class Tester:
         plt.grid(alpha=0.5, linestyle="--")
         plt.show()
     
+       #=============================================Task 2.2.2 test===================================================
+        
+    def jacobian_test_for_residual_neural_network(self):
+                # a single hidden layer with 3 neurons and 3 features
+        sample_matrix = np.array([[1],  # Feature 1
+                                [2],  # Feature 2
+                                [3]])  # Feature 3
+        
+        weight_matrix_1 = np.array([[0.1, 0.2, 0.3], 
+                                [0.4, 0.5, 0.6], 
+                                [0.7, 0.8, 0.9]])
+        
+        weight_matrix_2 = np.array([[0.1, 0.2, 0.3], 
+                                [0.4, 0.5, 0.6], 
+                                [0.7, 0.8, 0.9]])
+        
+        bias_vector = np.array([[0.1],
+                                [0.2],
+                                [0.3]])
+        tanh_model = Residual_Tanh()
+        
+        hidden_layer_1 = Classical_Hidden_Layer(weight_matrix_1, tanh_model, bias_vector)
+        hidden_layer_2 = Classical_Hidden_Layer(weight_matrix_2, tanh_model, bias_vector)
+        hidden_layers = [hidden_layer_1, hidden_layer_2]
+
+        neural_network = Standard_Neural_Network(hidden_layers)
+        neural_network.sample_matrix = sample_matrix
+
+        epsilon_values = np.logspace(1, 8, 8)  # Epsilon values
+        first_degree_approximations_weight = []
+        second_degree_approximations_weight = []
+
+        # Assume softmax_model.gradient_test_for_loss_function calculates and returns approximations
+        for epsilon in epsilon_values:
+
+            first, second = neural_network.jacobian_test_for_weight(1/epsilon)
+            first_degree_approximations_weight.append(first)
+            second_degree_approximations_weight.append(second)
+        
+        # Plotting the approximations on a semilogarithmic scale
+        plt.figure()
+        plt.loglog(epsilon_values, first_degree_approximations_weight, label='Zero Order Approximation', marker='o')
+        plt.loglog(epsilon_values, second_degree_approximations_weight, label='First Order Approximation', marker='s')
+        plt.xlabel('Epsilon (log scale)')
+        plt.ylabel('Approximation/Error (log scale)')
+        plt.title('Jacobian Test For standard Neural Network on Weights')
+        plt.legend()
+        plt.show()
+    
+    def jacobian_test_residuel_block(self):
+        # a single hidden layer with 3 neurons and 3 features
+        sample_matrix = np.array([[1],  # Feature 1
+                                [2],  # Feature 2
+                                [3]])  # Feature 3
+        
+        weight_matrix_1 = np.array([[0.1, 0.2, 0.3], 
+                                [0.4, 0.5, 0.6], 
+                                [0.7, 0.8, 0.9]])
+        
+        weight_matrix_2 = np.array([[0.1, 0.2, 0.3], 
+                                [0.4, 0.5, 0.6], 
+                                [0.7, 0.8, 0.9]])
+        
+        bias_vector = np.array([[0.1],
+                                [0.2],
+                                [0.3]])
+        
+        tanh_model = Residual_Tanh()
+        
+        hidden_layer = Residual_Block(weight_matrix_1, weight_matrix_2, tanh_model, bias_vector)
+
+        hidden_layer.set_input(sample_matrix)
+
+        test = hidden_layer.function()
+        logging
+
+        epsilon_values = np.logspace(1, 8, 8)  # Epsilon values
+        first_degree_approximations_weight_1 = []
+        second_degree_approximations_weight_1 = []
+
+        first_degree_approximations_weight_2 = []
+        second_degree_approximations_weight_2 = []
+
+        first_degree_approximations_samples = []
+        second_degree_approximations_samples = []
+
+        d_weight_1 = hidden_layer.get_normalized_random_vector(weight_matrix_1)
+        d_weight_2 = hidden_layer.get_normalized_random_vector(weight_matrix_2)
+        d_sample = hidden_layer.get_normalized_random_vector(sample_matrix)
+
+        # Assume softmax_model.gradient_test_for_loss_function calculates and returns approximations
+        for epsilon in epsilon_values:
+
+            # first, second = hidden_layer.jacobian_test_for_weight_1(1/epsilon, d_weight_1)
+            # first_degree_approximations_weight_1.append(first)
+            # second_degree_approximations_weight_1.append(second)
+
+            first, second = hidden_layer.jacobian_test_for_weight_2(1/epsilon, d_weight_2)
+            first_degree_approximations_weight_2.append(first)
+            second_degree_approximations_weight_2.append(second)
+
+            # first, second = hidden_layer.jacobian_test_for_samples(1/epsilon, d_sample)
+            # first_degree_approximations_samples.append(first)
+            # second_degree_approximations_samples.append(second)
+        
+        # Plotting the approximations on a semilogarithmic scale
+        # plt.figure()
+        # plt.loglog(epsilon_values, first_degree_approximations_weight_1, label='Zero Order Approximation', marker='o')
+        # plt.loglog(epsilon_values, second_degree_approximations_weight_1, label='First Order Approximation', marker='s')
+        # plt.xlabel('Epsilon (log scale)')
+        # plt.ylabel('Approximation/Error (log scale)')
+        # plt.title('Jacobian Test for residual block on Weight 1')   
+        # plt.legend()
+        # plt.show()
+
+        # Plotting the approximations on a semilogarithmic scale
+        plt.figure()
+        plt.loglog(epsilon_values, first_degree_approximations_weight_2, label='Zero Order Approximation', marker='o')
+        plt.loglog(epsilon_values, second_degree_approximations_weight_2, label='First Order Approximation', marker='s')
+        plt.xlabel('Epsilon (log scale)')
+        plt.ylabel('Approximation/Error (log scale)')
+        plt.title('Jacobian Test for residual block on Weight 2')
+        plt.legend()
+        plt.show()
+
+        # # Plotting the approximations on a semilogarithmic scale
+        # plt.figure()
+        # plt.loglog(epsilon_values, first_degree_approximations_samples, label='Zero Order Approximation', marker='o')
+        # plt.loglog(epsilon_values, second_degree_approximations_samples, label='First Order Approximation', marker='s')
+        # plt.xlabel('Epsilon (log scale)')
+        # plt.ylabel('Approximation/Error (log scale)')
+        # plt.title('Jacobian Test for residual block on sample')
+        # plt.legend()
+        # plt.show()
+    
     #=============================================Task 2.2.1 test===================================================
         
     def jacobian_test_for_standard_neural_network(self):
@@ -222,10 +364,10 @@ class Tester:
         bias_vector = np.array([[0.1],
                                 [0.2],
                                 [0.3]])
-        tanh_model = Tanh()
+        tanh_model = Classical_Tanh()
         
-        hidden_layer_1 = Hidden_Layer_Function(weight_matrix_1, tanh_model, bias_vector)
-        hidden_layer_2 = Hidden_Layer_Function(weight_matrix_2, tanh_model, bias_vector)
+        hidden_layer_1 = Classical_Hidden_Layer(weight_matrix_1, tanh_model, bias_vector)
+        hidden_layer_2 = Classical_Hidden_Layer(weight_matrix_2, tanh_model, bias_vector)
         hidden_layers = [hidden_layer_1, hidden_layer_2]
 
         neural_network = Standard_Neural_Network(hidden_layers)
@@ -266,9 +408,9 @@ class Tester:
         bias_vector = np.array([[0.1],
                                 [0.2],
                                 [0.3]])
-        tanh_model = Tanh()
+        tanh_model = Classical_Tanh()
         
-        hidden_layer = Hidden_Layer_Function(weight_matrix, tanh_model, bias_vector)
+        hidden_layer = Classical_Hidden_Layer(weight_matrix, tanh_model, bias_vector)
 
         hidden_layer.set_input_for_test(sample_matrix)
 
@@ -327,7 +469,7 @@ class Tester:
             objective_function = Softmax.Softmax(initial_weights)
 
             # Step 4: Initialize SGD optimizer with hyperparameters
-            learning_rate = 0.00005
+            learning_rate = 0.00001
             max_iterations = 80
             batch_size = 100
             sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, training_features, training_labels)
@@ -372,7 +514,7 @@ class Tester:
     #=============================================Task 2.1.2 test===================================================
     def test_sgd_on_least_squares(self):
         # Step 1: Create synthetic data
-        np.random.seed(88)
+        np.random.seed(42)
         num_samples = 100
         num_features = 2
 
@@ -387,14 +529,12 @@ class Tester:
 
         # Step 2: Initialize the objective function
         objective_function = LeastSquaresObjectiveFunction(initial_weights)
-        objective_function.set_sample_matrix(X)
-        objective_function.set_label_matrix(y)
 
         # Step 3: Initialize SGD optimizer
         learning_rate = 0.6
-        max_iterations = 100
+        max_iterations = 10
         batch_size = 10
-        sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size)
+        sgd_optimizer = SGD(objective_function, learning_rate, max_iterations, batch_size, X.T, y)
         
         optimized_weights , losses = sgd_optimizer.optimize()
 
@@ -435,13 +575,16 @@ class Tester:
         first_degree_approximations_samples = []
         second_degree_approximations_samples = []
 
+        d_weight = softmax_model.get_normalized_random_vector(weight_matrix)
+        d_sample = softmax_model.get_normalized_random_vector(input_matrix)
+
         # Assume softmax_model.gradient_test_for_loss_function calculates and returns approximations
         for epsilon in epsilon_values:
-            first, second = softmax_model.gradient_test_for_loss_function_on_weight(1/epsilon)
+            first, second = softmax_model.gradient_test_for_loss_function_on_weight(1/epsilon,d_weight)
             first_degree_approximations_weight.append(first)
             second_degree_approximations_weight.append(second)
 
-            first, second = softmax_model.gradient_test_for_loss_function_on_samples(1/epsilon)
+            first, second = softmax_model.gradient_test_for_loss_function_on_samples(1/epsilon,d_sample)
             first_degree_approximations_samples.append(first)
             second_degree_approximations_samples.append(second)
 

@@ -1,6 +1,6 @@
 import numpy as np # type: ignore
 import logging
-from Hidden_Layer_Functions.Hidden_Layer_Function import Hidden_Layer_Function
+from Hidden_Layer_Functions.classical_hidden_layer import Classical_Hidden_Layer
 from neural_networks.standard_neural_network import Standard_Neural_Network
 from output_functions.ObjectiveFunction import ObjectiveFunction
 import output_functions.Softmax as Softmax
@@ -17,7 +17,7 @@ class Neural_Network(ObjectiveFunction):
         for i in range(len(hidden_layer_dim_list)):
             weight_matrix = np.random.randn(hidden_layer_dim_list[i], curr_dim) * np.sqrt(2 / curr_dim)  # He initialization
             bias_vector = np.random.randn(hidden_layer_dim_list[i], 1) * np.sqrt(2 / curr_dim)  # He initialization
-            hidden_layer_functions.append(Hidden_Layer_Function(weight_matrix, activation_function, bias_vector))
+            hidden_layer_functions.append(Classical_Hidden_Layer(weight_matrix, activation_function, bias_vector))
             curr_dim = hidden_layer_dim_list[i]
         
         self.neural_network = Standard_Neural_Network(hidden_layer_functions)
@@ -76,8 +76,6 @@ class Neural_Network(ObjectiveFunction):
         self.output_layer_function.set_weights(out_params.reshape(correct_shape))
     
     def gradient_test_on_weight(self, epsilon):
-
-        weight_matrix = self.get_weights()
 
         # Step 1: Generate normalized random vector d
         d = self.get_normalized_random_vector()

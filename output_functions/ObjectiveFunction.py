@@ -65,14 +65,12 @@ class ObjectiveFunction(ABC):
         """
         pass
 
-    def gradient_test_for_loss_function_on_weight(self, epsilon):
+    def gradient_test_for_loss_function_on_weight(self, epsilon,d):
         """
         Perform a gradient test to verify the implementation of the gradient.
         :param weightMatrix: The weight matrix.
         :param epsilon: Perturbation value for the gradient test.
         """
-        # Step 1: Generate normalized random vector d
-        d = self.get_normalized_random_vector(self.weight_matrix)
 
         # Step 2: Compute numerical approximation using finite differences
         original_weight_matrix = self.weight_matrix
@@ -92,14 +90,13 @@ class ObjectiveFunction(ABC):
 
         return zero_order_approximation, first_degree_approximation
     
-    def gradient_test_for_loss_function_on_samples(self, epsilon):
+    def gradient_test_for_loss_function_on_samples(self, epsilon, d):
         """
         Perform a gradient test to verify the implementation of the gradient.
         :param weightMatrix: The weight matrix.
         :param epsilon: Perturbation value for the gradient test.
         """
-        # Step 1: Generate normalized random vector d
-        d = self.get_normalized_random_vector(self.sample_matrix)
+        
         sample_matrix_original = self.sample_matrix
         self.sample_matrix = self.sample_matrix + epsilon * d
 

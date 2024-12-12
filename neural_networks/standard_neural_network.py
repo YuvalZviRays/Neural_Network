@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 import numpy as np # type: ignore
-from Hidden_Layer_Functions.Hidden_Layer_Function import Hidden_Layer_Function
 from neural_networks.neural_network import Neural_Network
 
 class Standard_Neural_Network(Neural_Network):
@@ -16,8 +15,7 @@ class Standard_Neural_Network(Neural_Network):
             hidden_layer_function.set_input(output)
             output = hidden_layer_function.function()
         
-        return output
-    
+        return output   
 
     def jackMV(self, p):
         # p is a 1D array representing perturbations to all weights and biases.

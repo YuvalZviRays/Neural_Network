@@ -4,8 +4,8 @@ import logging
 
 class Neural_Network(ABC):
     """
-    Abstract base class for any objective function.
-    This serves as an interface for gradient-based optimization tasks.
+
+    A class representing a neural network without the final softmax layer.
     """
 
     def __init__(self, hidden_layers):
@@ -32,7 +32,7 @@ class Neural_Network(ABC):
     @abstractmethod
     def jackTMV(self):
         """
-        compute the Jacobian-vector product
+        compute the Jacobian-vector transpose product
         Does this by propogating the input through the network and then multiplying the result by the input vector
         :param v: The vector to multiply the Jacobian with.
         :return: The product.
@@ -42,7 +42,7 @@ class Neural_Network(ABC):
     @abstractmethod
     def get_weights(self):
         """
-        Get the parameters of the objective function.
+        Get the parameters of the neural network ordered in a vector.
         :return: The parameters.
         """
         pass
@@ -50,8 +50,9 @@ class Neural_Network(ABC):
     @abstractmethod
     def set_weights(self, weight_matrix):
         """
-        Get the parameters of the objective function.
-        :return: The parameters.
+
+        Set the parameters of the neural network from a vector.
+        :param weight_matrix: The parameters.
         """
         pass
 
